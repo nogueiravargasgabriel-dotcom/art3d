@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Camada3D — Impressão 3D</title>
+<style>
+:root{--bg:#fafaf7;--sf:#fff;--tx:#1b1b1f;--mu:#6b6b76;--bd:#e4e4dc;--ac:#e8590c;--ac2:#fff;--ok:#2b8a3e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141416;--sf:#1e1e22;--tx:#f0f0f2;--mu:#a0a0aa;--bd:#33333a;--ac:#ff7a2e;--ac2:#141416;--ok:#51cf66}}
+:root[data-theme="dark"]{--bg:#141416;--sf:#1e1e22;--tx:#f0f0f2;--mu:#a0a0aa;--bd:#33333a;--ac:#ff7a2e;--ac2:#141416;--ok:#51cf66}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:12px 20px}
+.logo{font-weight:800;font-size:20px;letter-spacing:-.5px}.logo b{color:var(--ac)}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--ac);color:var(--ac2);border:0;border-radius:10px;padding:10px 16px;font-weight:600}
+.btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+.btn:disabled{opacity:.5;cursor:wait}
+.hero{max-width:960px;margin:0 auto;padding:56px 20px 24px}
+.hero h1{font-size:clamp(30px,6vw,52px);line-height:1.1;margin:0 0 12px;letter-spacing:-1px}
+.hero p{color:var(--mu);max-width:560px;margin:0 0 20px}
+main{max-width:960px;margin:0 auto;padding:0 20px 60px}
+h2{margin:36px 0 14px;font-size:22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.thumb{height:130px;display:grid;place-items:center;font-size:56px;background:linear-gradient(135deg,color-mix(in srgb,var(--ac) 18%,var(--sf)),var(--sf))}
+.card .in{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px;flex:1}
+.card h3{margin:0;font-size:16px}.card small{color:var(--mu)}
+.price{font-weight:700;margin-top:auto;padding-top:6px}
+.quote{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:18px;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));align-items:end}
+label{display:grid;gap:4px;font-size:14px;color:var(--mu)}
+input,select{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);width:100%}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:20;justify-content:flex-end}
+.overlay.open{display:flex}
+.panel{background:var(--bg);width:min(440px,100%);height:100%;overflow-y:auto;padding:20px;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--bd)}
+.qty{display:flex;align-items:center;gap:6px}.qty button{width:28px;height:28px;border-radius:8px;border:1px solid var(--bd);background:var(--sf);color:var(--tx)}
+.tot{display:grid;gap:4px;margin:14px 0}.tot div{display:flex;justify-content:space-between}.tot .g{font-weight:800;font-size:18px}
+.tabs{display:flex;gap:8px;margin:12px 0}.tabs button{flex:1}.tabs .on{background:var(--ac);color:var(--ac2);border-color:var(--ac)}
+form,.fields{display:grid;gap:10px}
+.warn{font-size:13px;color:var(--mu);background:var(--sf);border:1px dashed var(--bd);border-radius:10px;padding:10px}
+.pix{word-break:break-all;font:12px ui-monospace,monospace;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:10px}
+.ok{color:var(--ok);font-weight:700}
+.err{color:#e03131;font-size:14px;min-height:1em}
+footer{text-align:center;color:var(--mu);font-size:13px;padding:30px 20px}
+.close{background:none;border:0;color:var(--tx);font-size:22px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Camada<b>3D</b></div>
+  <button class="btn ghost" onclick="openCart()">🛒 Carrinho (<span id="cnt">0</span>)</button>
+</header>
+
+<section class="hero">
+  <h1>Peças impressas em 3D, do seu jeito.</h1>
+  <p>Produtos prontos ou impressão sob medida em PLA, PETG e ABS. Pague com Pix ou cartão e receba em casa.</p>
+  <a href="#orcamento"><button class="btn">Pedir impressão sob medida</button></a>
+</section>
+
+<main>
+  <h2>Produtos prontos</h2>
+  <div class="grid" id="grid"></div>
+
+  <h2 id="orcamento">Impressão sob medida</h2>
+  <div class="quote">
+    <label>Material
+      <select id="mat">
+        <option value="0.14">PLA — R$ 0,14/g</option>
+        <option value="0.18">PETG — R$ 0,18/g</option>
+        <option value="0.20">ABS — R$ 0,20/g</option>
+      </select>
+    </label>
+    <label>Peso estimado (g)<input id="gr" type="number" min="1" value="50"></label>
+    <label>Quantidade<input id="qn" type="number" min="1" value="1"></label>
+    <div>
+      <div style="font-size:14px;color:var(--mu)">Estimativa</div>
+      <div class="price" id="est" style="font-size:22px"></div>
+    </div>
+    <button class="btn" onclick="addCustom()">Adicionar ao carrinho</button>
+  </div>
+  <p class="warn" style="margin-top:10px">Valor = peso × preço do material + R$ 8,00 de setup por peça. Arquivos STL são conferidos por e-mail após o pedido.</p>
+</main>
+<footer>© 2026 Camada3D · Pagamento em ambiente de demonstração</footer>
+
+<div class="overlay" id="cartO" onclick="if(event.target===this)closeAll()">
+  <div class="panel">
+    <div class="row" style="border:0"><h2 style="margin:0">Seu carrinho</h2><button class="close" onclick="closeAll()">✕</button></div>
+    <div id="items"></div>
+    <div class="tot" id="tot"></div>
+    <button class="btn" style="width:100%" id="goPay" onclick="openPay()">Ir para o pagamento</button>
+  </div>
+</div>
+
+<div class="overlay" id="payO" onclick="if(event.target===this)closeAll()">
+  <div class="panel">
+    <div class="row" style="border:0"><h2 style="margin:0">Pagamento</h2><button class="close" onclick="closeAll()">✕</button></div>
+    <div id="payBody"></div>
+  </div>
+</div>
+
+<script>
+const PRODUCTS=[
+ {id:1,e:"🏺",n:"Vaso Low Poly",d:"PLA · 12 cm",p:49.9},
+ {id:2,e:"🎧",n:"Suporte de Headset",d:"PETG · resistente",p:39.9},
+ {id:3,e:"🐉",n:"Dragão Articulado",d:"PLA silk · 20 cm",p:89.9},
+ {id:4,e:"🗂️",n:"Organizador Modular",d:"Kit com 4 peças",p:59.9},
+ {id:5,e:"💡",n:"Luminária Litofania",d:"Foto personalizada",p:79.9},
+ {id:6,e:"🔑",n:"Chaveiro com Nome",d:"Cores à escolha",p:19.9}
+];
+const FRETE=18,GRATIS=200;
+const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+let cart=[];
+try{cart=JSON.parse(localStorage.getItem("c3d")||"[]")}catch(e){}
+const $=id=>document.getElementById(id);
+const save=()=>{try{localStorage.setItem("c3d",JSON.stringify(cart))}catch(e){}};
+
+$("grid").innerHTML=PRODUCTS.map(p=>`<div class="card"><div class="thumb">${p.e}</div><div class="in"><h3>${p.n}</h3><small>${p.d}</small><div class="price">${brl(p.p)}</div><button class="btn" onclick="add(${p.id})">Adicionar</button></div></div>`).join("");
+
+function add(id){const p=PRODUCTS.find(x=>x.id===id);const c=cart.find(x=>x.id===id);c?c.q++:cart.push({id,n:p.n,p:p.p,q:1});upd();openCart()}
+function est(){const v=(+$("mat").value*Math.max(1,+$("gr").value||0)+8)*Math.max(1,+$("qn").value||1);return v}
+function showEst(){$("est").textContent=brl(est())}
+["mat","gr","qn"].forEach(i=>$(i).addEventListener("input",showEst));showEst();
+function addCustom(){const m=$("mat").selectedOptions[0].text.split(" ")[0],q=Math.max(1,+$("qn").value||1),g=Math.max(1,+$("gr").value||1);
+  cart.push({id:"c"+Date.now(),n:`Sob medida ${m} · ${g}g`,p:est()/q,q});upd();openCart()}
+function chg(i,d){cart[i].q+=d;if(cart[i].q<1)cart.splice(i,1);upd()}
+function totals(){const s=cart.reduce((a,c)=>a+c.p*c.q,0);const f=s===0||s>=GRATIS?0:FRETE;return{s,f,t:s+f}}
+function upd(){save();$("cnt").textContent=cart.reduce((a,c)=>a+c.q,0);
+  $("items").innerHTML=cart.length?cart.map((c,i)=>`<div class="row"><div><div>${c.n}</div><small style="color:var(--mu)">${brl(c.p)}</small></div><div class="qty"><button onclick="chg(${i},-1)">−</button>${c.q}<button onclick="chg(${i},1)">+</button></div></div>`).join(""):'<p style="color:var(--mu)">Carrinho vazio.</p>';
+  const t=totals();
+  $("tot").innerHTML=`<div><span>Subtotal</span><span>${brl(t.s)}</span></div><div><span>Frete</span><span>${t.f?brl(t.f):"Grátis"}</span></div><div class="g"><span>Total</span><span>${brl(t.t)}</span></div><small style="color:var(--mu)">Frete grátis acima de ${brl(GRATIS)}</small>`;
+  $("goPay").disabled=!cart.length}
+function openCart(){closeAll();$("cartO").classList.add("open")}
+function closeAll(){$("cartO").classList.remove("open");$("payO").classList.remove("open")}
+
+let method="pix";
+function openPay(){closeAll();$("payO").classList.add("open");renderPay()}
+function renderPay(){const t=totals();
+  $("payBody").innerHTML=`<div class="warn">Ambiente de demonstração: nenhum pagamento real é processado. Não digite dados reais de cartão.</div>
+  <div class="tot"><div class="g"><span>Total</span><span>${brl(t.t)}</span></div></div>
+  <form onsubmit="pay(event)">
+    <div class="fields"><input id="nm" placeholder="Nome completo" required><input id="em" type="email" placeholder="E-mail" required><input id="cep" placeholder="CEP" required inputmode="numeric" maxlength="9"></div>
+    <div class="tabs"><button type="button" class="btn ghost ${method==="pix"?"on":""}" onclick="method='pix';renderPay()">Pix</button><button type="button" class="btn ghost ${method==="card"?"on":""}" onclick="method='card';renderPay()">Cartão</button></div>
+    ${method==="card"?`<div class="fields"><input id="cn" placeholder="Número do cartão" inputmode="numeric" maxlength="19" required><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><input id="cv" placeholder="MM/AA" maxlength="5" required><input id="cc" placeholder="CVV" maxlength="4" inputmode="numeric" required></div></div>`:`<p style="color:var(--mu);font-size:14px">O código Pix será gerado ao confirmar. Aprovação imediata (simulada).</p>`}
+    <div class="err" id="err"></div>
+    <button class="btn" id="sub">${method==="pix"?"Gerar Pix":"Pagar "+brl(t.t)}</button>
+  </form>`}
+const luhn=n=>{let s=0,a=false;for(let i=n.length-1;i>=0;i--){let d=+n[i];if(a){d*=2;if(d>9)d-=9}s+=d;a=!a}return n.length>=13&&s%10===0};
+
+/* Ponto de integração: troque este mock por uma chamada ao seu backend
+   (ex.: POST /api/checkout → Mercado Pago, Stripe, Pagar.me), que cria o pagamento
+   com a chave secreta no servidor e devolve o QR Code Pix ou o status do cartão. */
+async function processPayment(order){await new Promise(r=>setTimeout(r,1200));
+  return{ok:true,id:"PED-"+Math.floor(100000+Math.random()*900000),pix:order.method==="pix"?"00020126580014BR.GOV.BCB.PIX0136demo-"+crypto.randomUUID()+"5204000053039865802BR5909Camada3D6009PORTOALEGRE6304ABCD":null}}
+
+async function pay(e){e.preventDefault();$("err").textContent="";
+  if(method==="card"){const n=$("cn").value.replace(/\D/g,"");if(!luhn(n)){$("err").textContent="Número de cartão inválido.";return}
+    if(!/^(0[1-9]|1[0-2])\/\d{2}$/.test($("cv").value)){$("err").textContent="Validade inválida (MM/AA).";return}}
+  $("sub").disabled=true;$("sub").textContent="Processando…";
+  const order={method,items:cart,total:totals().t,name:$("nm").value,email:$("em").value,cep:$("cep").value};
+  const r=await processPayment(order);
+  if(!r.ok){$("err").textContent="Pagamento recusado.";$("sub").disabled=false;return}
+  cart=[];upd();
+  $("payBody").innerHTML=r.pix?`<p class="ok">Pedido ${r.id} criado!</p><p>Copie o código Pix abaixo e pague no app do seu banco:</p><div class="pix">${r.pix}</div><button class="btn" style="margin-top:12px" onclick="navigator.clipboard&&navigator.clipboard.writeText('${r.pix}')">Copiar código</button> <button class="btn ghost" onclick="closeAll()">Fechar</button>`
+  :`<p class="ok">Pagamento aprovado! ✅</p><p>Pedido ${r.id}. Enviamos a confirmação para ${order.email}.</p><button class="btn" onclick="closeAll()">Voltar à loja</button>`}
+upd();
+</script>
+</body>
+</html>
